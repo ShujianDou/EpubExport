@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace EpubE
+namespace KobeiD
 {
     public enum MediaType
     {
@@ -52,6 +52,7 @@ namespace EpubE
         public string workingDirectory, OEBPSDIR;
         public string mimeType = "application/epub+zip";
         public string METAINF = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><container version = \"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\"><rootfiles><rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/></rootfiles></container>";
+        public string creditFactory = "<?xml version='1.0' encoding='utf-8'?><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\"><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/><meta name=\"calibre:cover\" content=\"false\"/><title>Tribute</title><style type=\"text/css\" title=\"override_css\">@page {padding: 0pt; margin:0pt}\nbody { text-align: center; padding:0pt; margin: 0pt; }</style></head><body><div><svg xmlns = \"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.1\" width=\"100%\" height=\"100%\" viewBox=\"0 0 741 1186\" preserveAspectRatio=\"none\"><image width = \"741\" height=\"1186\" xlink:href=\"../cover.jpeg\"/></svg></div>";
         public string stylesheet = @"div.svg_outer {
    display: block;
    margin-bottom: 0;
@@ -163,11 +164,11 @@ border: 1px solid black;
         List<Page> pages;
         List<Image> images;
 
-        public Epub(string title, string author = null)
+        public Epub(string title, string author = null, Image image = null, Uri toWork = null)
         {
-            Title = title; author = author;
+            Title = title; this.author = author;
 
-            workingDirectory = $"{Directory.GetCurrentDirectory()}\\{title}";
+            workingDirectory = $"{Directory.GetCurrentDirectory()}\\Epubs\\{title}";
             OEBPSDIR = workingDirectory + "\\OEBPS";
 
             Directory.CreateDirectory(workingDirectory);
@@ -181,7 +182,13 @@ border: 1px solid black;
             File.CreateText(workingDirectory + "\\META-INF\\container.xml").Close();
             File.AppendAllText(workingDirectory + "\\META-INF\\container.xml", METAINF);
 
+            if (image != null)
+                using (BinaryWriter bw = new BinaryWriter(new FileStream(OEBPSDIR + "\\cover.jpeg", FileMode.OpenOrCreate)))
+                    bw.Write(image.bytes, 0, image.bytes.Length);
+
+            creditFactory += $"<p>Link to source: <a href=\"{(toWork != null ? toWork.ToString() : "null")}\">{(toWork != null ? toWork.ToString() : "null")}</a></p><p>Work is by: {author}, go support them!</p><p>Converted to Epub by Chay#3670</p></body></html>";
             pages = new List<Page>();
+            AddPage(new Page() { id = "titlepage", Text = creditFactory });
         }
 
         public void AddPage(Page page)
