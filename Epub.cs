@@ -1,3 +1,4 @@
+using KobeiD.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -43,6 +44,34 @@ namespace KobeiD
             foreach (Page pg in pages)
                 items.Add(new Item(pg.id, pg.hrefTo, MediaType.xhtml));
             return items;
+        }
+
+        /// <summary>
+        /// Enumerates over all characters in the given string and replaces special chars, <, >, and & with escaped chars.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static string MakeTextXHTMLReady(string text)
+        {
+            char[] chars = text.ToCharArray();
+            StringBuilder sb = new StringBuilder();
+            for(int idx = 0; idx < text.Length; idx++)
+                switch(text[idx])
+                {
+                    case '<':
+                        sb.Append("&lt;");
+                        break;
+                    case '>':
+                        sb.Append("&gt;");
+                        break;
+                    case '&':
+                        sb.Append("&amp;");
+                        break;
+                    default:
+                        sb.Append(text[idx]);
+                        continue;
+                }
+            return sb.ToString();
         }
     }
 
@@ -365,6 +394,7 @@ border: 1px solid black;
 
         public static Page AutoGenerate(string pageText, string title)
         {
+            pageText = shorts.MakeTextXHTMLReady(pageText);
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE html PUBLIC \" -//W3C//DTD XHTML 1.1//EN\"\n\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
             sb.AppendLine("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head><title></title><link href=\"../Styles/stylesheet.css\" type=\"text/css\" rel=\"stylesheet\"/></head>");
